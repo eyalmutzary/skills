@@ -1,0 +1,15 @@
+# Whitelist: ignore everything at the repo root, then un-ignore what we want.
+# To include another folder later (e.g. commands/), add:
+#   !commands/
+
+/*
+!.gitignore
+!skills/
+
+# Junk inside allowed folders
+**/.DS_Store
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/node_modules/
+**/.git/
