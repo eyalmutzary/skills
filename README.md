@@ -2,8 +2,6 @@
 
 Personal [Claude Code](https://docs.anthropic.com/en/docs/claude-code) / agent skills from `~/.claude/skills`.
 
-This repo tracks a whitelist of the Claude home directory — currently `skills/`, `CLAUDE.md`, `output-styles/`, `settings-public.json`, and the status line. Other paths can be added later by un-ignoring them in `.gitignore`.
-
 ## Skills
 
 | Skill | What it does |
@@ -33,32 +31,3 @@ cp statusline/ccstatusline.settings.json ~/.config/ccstatusline/settings.json
 ```
 
 Point `statusLine.command` at `~/.claude/statusline-command.sh` (see `settings-public.json`). The script uses `ccstatusline` from `PATH`, then a local nvm install.
-
-## Layout
-
-```
-skills/<skill-name>/SKILL.md          # required entry point
-skills/<skill-name>/...               # optional references and helpers
-output-styles/<Name>.md               # Claude Code output styles
-settings-public.json                  # settings safe to share publicly
-statusline-command.sh                 # launches ccstatusline
-statusline/ccstatusline.settings.json # ccstatusline layout
-```
-
-## Whitelist
-
-Root `.gitignore` ignores everything, then allows specific paths:
-
-```gitignore
-/*
-!.gitignore
-!README.md
-!CLAUDE.md
-!skills/
-!output-styles/
-!settings-public.json
-!statusline-command.sh
-!statusline/
-```
-
-To track another folder (e.g. `commands/`), add `!commands/`.
