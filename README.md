@@ -2,7 +2,7 @@
 
 Personal [Claude Code](https://docs.anthropic.com/en/docs/claude-code) / agent skills from `~/.claude/skills`.
 
-This repo tracks a whitelist of the Claude home directory — currently `skills/`, `CLAUDE.md`, `output-styles/`, and `settings-public.json`. Other paths can be added later by un-ignoring them in `.gitignore`.
+This repo tracks a whitelist of the Claude home directory — currently `skills/`, `CLAUDE.md`, `output-styles/`, `settings-public.json`, and the status line. Other paths can be added later by un-ignoring them in `.gitignore`.
 
 ## Skills
 
@@ -22,6 +22,18 @@ This repo tracks a whitelist of the Claude home directory — currently `skills/
 | --- | --- |
 | `ELI5` | Plain, short answers (ASD-STE100-ish); what happened, did it work, what next |
 
+## Status line
+
+Claude Code runs `statusline-command.sh`, which launches [ccstatusline](https://www.npmjs.com/package/ccstatusline). Layout is in `statusline/ccstatusline.settings.json` (live copy on a machine: `~/.config/ccstatusline/settings.json`).
+
+```bash
+npm i -g ccstatusline
+mkdir -p ~/.config/ccstatusline
+cp statusline/ccstatusline.settings.json ~/.config/ccstatusline/settings.json
+```
+
+Point `statusLine.command` at `~/.claude/statusline-command.sh` (see `settings-public.json`). The script uses `ccstatusline` from `PATH`, then a local nvm install.
+
 ## Layout
 
 ```
@@ -29,6 +41,8 @@ skills/<skill-name>/SKILL.md          # required entry point
 skills/<skill-name>/...               # optional references and helpers
 output-styles/<Name>.md               # Claude Code output styles
 settings-public.json                  # settings safe to share publicly
+statusline-command.sh                 # launches ccstatusline
+statusline/ccstatusline.settings.json # ccstatusline layout
 ```
 
 ## Whitelist
@@ -43,6 +57,8 @@ Root `.gitignore` ignores everything, then allows specific paths:
 !skills/
 !output-styles/
 !settings-public.json
+!statusline-command.sh
+!statusline/
 ```
 
 To track another folder (e.g. `commands/`), add `!commands/`.

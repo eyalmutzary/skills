@@ -9,6 +9,8 @@
 !skills/
 !output-styles/
 !settings-public.json
+!statusline-command.sh
+!statusline/
 
 # Junk inside allowed folders
 **/.DS_Store

@@ -1,0 +1,80 @@
+{
+  "version": 3,
+  "lines": [
+    [
+      {
+        "id": "1",
+        "type": "model",
+        "color": "brightMagenta"
+      },
+      {
+        "id": "2",
+        "type": "separator"
+      },
+      {
+        "id": "3",
+        "type": "context-length",
+        "color": "brightBlue"
+      },
+      {
+        "id": "6",
+        "type": "separator"
+      },
+      {
+        "id": "7",
+        "type": "git-changes",
+        "color": "yellow"
+      }
+    ],
+    [
+      {
+        "id": "6570a849-a809-4735-adb3-cb18b0716823",
+        "type": "custom-command",
+        "commandPath": "basename $(pwd)",
+        "color": "brightBlack"
+      },
+      {
+        "id": "97a9181c-ffb8-4d6b-ba7b-7ea5e0e7aa22",
+        "type": "separator"
+      },
+      {
+        "id": "276404db-7d6e-4686-b869-69ae616a2c1f",
+        "type": "git-worktree",
+        "color": "blue"
+      },
+      {
+        "id": "a1d1f863-c266-4642-b7d0-b4dfcaecf132",
+        "type": "separator"
+      },
+      {
+        "id": "cc324c5f-112a-4dfb-a61c-b1ce240276d7",
+        "type": "git-branch"
+      }
+    ],
+    []
+  ],
+  "flexMode": "full-minus-40",
+  "compactThreshold": 60,
+  "colorLevel": 2,
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "gitCacheTtlSeconds": 5,
+  "minimalistMode": false,
+  "powerline": {
+    "enabled": false,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "autoAlign": false,
+    "continueThemeAcrossLines": false
+  },
+  "installation": {
+    "method": "pinned",
+    "installedVersion": "2.2.19"
+  }
+}

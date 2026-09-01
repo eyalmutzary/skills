@@ -4,5 +4,11 @@
   "autoCompactWindow": 200000,
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "autoCompactEnabled": true
+  "autoCompactEnabled": true,
+  "statusLine": {
+    "type": "command",
+    "command": "/bin/sh ~/.claude/statusline-command.sh",
+    "padding": 0,
+    "refreshInterval": 10
+  }
 }
