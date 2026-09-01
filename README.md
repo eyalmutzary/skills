@@ -2,7 +2,7 @@
 
 Personal [Claude Code](https://docs.anthropic.com/en/docs/claude-code) / agent skills from `~/.claude/skills`.
 
-This repo tracks a whitelist of the Claude home directory — currently only `skills/`. Other folders can be added later by un-ignoring them in `.gitignore`.
+This repo tracks a whitelist of the Claude home directory — currently `skills/` and `CLAUDE.md`. Other paths can be added later by un-ignoring them in `.gitignore`.
 
 ## Skills
 
