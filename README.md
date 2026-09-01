@@ -31,6 +31,7 @@ Root `.gitignore` ignores everything, then allows specific paths:
 /*
 !.gitignore
 !README.md
+!CLAUDE.md
 !skills/
 ```
 
