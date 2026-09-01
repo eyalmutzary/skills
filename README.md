@@ -2,7 +2,7 @@
 
 Personal [Claude Code](https://docs.anthropic.com/en/docs/claude-code) / agent skills from `~/.claude/skills`.
 
-This repo tracks a whitelist of the Claude home directory — currently `skills/`, `CLAUDE.md`, and `output-styles/`. Other paths can be added later by un-ignoring them in `.gitignore`.
+This repo tracks a whitelist of the Claude home directory — currently `skills/`, `CLAUDE.md`, `output-styles/`, and `settings-public.json`. Other paths can be added later by un-ignoring them in `.gitignore`.
 
 ## Skills
 
@@ -28,6 +28,7 @@ This repo tracks a whitelist of the Claude home directory — currently `skills/
 skills/<skill-name>/SKILL.md          # required entry point
 skills/<skill-name>/...               # optional references and helpers
 output-styles/<Name>.md               # Claude Code output styles
+settings-public.json                  # settings safe to share publicly
 ```
 
 ## Whitelist
@@ -41,6 +42,7 @@ Root `.gitignore` ignores everything, then allows specific paths:
 !CLAUDE.md
 !skills/
 !output-styles/
+!settings-public.json
 ```
 
 To track another folder (e.g. `commands/`), add `!commands/`.

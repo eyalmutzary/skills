@@ -1,0 +1,8 @@
+{
+  "effortLevel": "medium",
+  "outputStyle": "ELI5",
+  "autoCompactWindow": 200000,
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "autoCompactEnabled": true
+}

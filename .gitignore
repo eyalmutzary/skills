@@ -8,6 +8,7 @@
 !CLAUDE.md
 !skills/
 !output-styles/
+!settings-public.json
 
 # Junk inside allowed folders
 **/.DS_Store
