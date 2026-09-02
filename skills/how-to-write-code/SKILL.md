@@ -38,7 +38,8 @@ For frontend or React work, **REQUIRED REFERENCE:** read
   coordinator and delegate each concern to a focused helper.
 - Group related persistence, event, and logging operations when they make the
   entry point long.
-- Keep simple boolean checks as named local variables.
+- Usually prefer a named `const` boolean over writing a check into a
+  condition as-is. Words are easier to read than logical gates.
 - Keep an obvious call or small object literal inline; do not hide it behind a
   forwarding helper.
 - Prefer guard clauses and a visible happy path over nesting.
@@ -63,8 +64,12 @@ For frontend or React work, **REQUIRED REFERENCE:** read
 
 ### Comments
 
-- Make logic self-explanatory in code; Comment only on decisions or external constraint that are genuinely impossible to understand from the code.
-- Keep comments clear and concise.
+- Default: no comments. Names, helpers, and blank lines explain the code.
+- Allowed (uncommon): one short line for a decision or external constraint the code
+  cannot show.
+- Rare: A comment longer than one or two short sentences.
+  Prefer fixing the name or structure to better explain itself. Write more only when the constraint
+  is still invisible after that, and keep it as short and clear as it can be.
 
 ### Errors
 
@@ -91,10 +96,12 @@ Never extract solely to satisfy a number.
 ## Common mistakes
 
 - **Tiny helper:** use a named local value or keep the obvious call inline.
+- **Inline condition:** pull the check into a named boolean, then use that name.
 - **Magic literal:** name its meaning.
 - **Throw without a log:** create one message, log it, then throw it.
 - **Deep nesting:** reject invalid cases early.
 - **Premature abstraction:** tolerate small duplication.
+- **Narrating comment:** delete it; name the stage in code instead.
 
 Use [backend-example.md](backend-example.md) as the canonical reference for
 file shape and extraction level.

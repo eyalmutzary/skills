@@ -39,9 +39,9 @@ Create one self-contained HTML file with inline CSS and JavaScript:
 `/tmp/YYYY-MM-DD-pr-review-<short-slug>.html`
 
 Open it automatically. Aim for a five-minute read. Prefer short paragraphs,
-bullets, concrete examples, and visual explanations over detailed prose.
-Introduce enough system context to support the mental model, then leave deeper
-details for follow-up questions.
+bullets, concrete examples, and visual or interactive explanations over
+detailed prose. Introduce enough system context to support the mental model,
+then leave deeper details for follow-up questions.
 
 Use these sections:
 
@@ -53,7 +53,7 @@ Use these sections:
 2. **How it works**
    - One concept-led flow through the change
    - One concrete example
-   - A targeted HTML/CSS diagram when it clarifies the flow
+   - A targeted visual or interactive explanation when it clarifies the flow
 
 3. **Why it took this shape**
    - The few important obstacles, workarounds, and tradeoffs
@@ -84,7 +84,10 @@ deep dives for complex subsystems.
 - Include code snippets when they materially improve the mental model.
 - Render code in `<pre>` elements styled with `white-space: pre` or
   `white-space: pre-wrap`.
-- Build diagrams with HTML and CSS.
+- Prefer diagrams, before/after comparisons, progressive disclosure, or
+  lightweight animation when they explain a concept faster than prose.
+- Build visuals and interactions with HTML, CSS, and JavaScript. Keep them
+  purposeful, intuitive, and focused on the concept.
 
 ## Follow-up questions
 
