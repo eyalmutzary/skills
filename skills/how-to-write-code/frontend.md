@@ -19,9 +19,18 @@ Apply the main skill plus these frontend rules.
 
 - Render Vibe components or focused custom components, not raw HTML elements
   such as `div`, `section`, `ul`, or `li`.
-- Use external SCSS. Do not use inline style objects.
 - Keep JSX shallow. Extract a meaningful component when the visual flow becomes
   difficult to scan.
+
+## Styling
+
+- Prefer component styling props for common layout and spacing needs, such as
+  padding, gap, flex, alignment, and sizing.
+- Add CSS only when the component API cannot express a required style. Keep
+  custom CSS to the minimum needed because it increases the debugging surface.
+- Put custom styles in external CSS or SCSS files. Never use inline styles,
+  including `style` props or inline style objects.
+- Never use `!important`.
 
 ## Text
 

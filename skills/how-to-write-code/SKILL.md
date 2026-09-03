@@ -38,8 +38,22 @@ For frontend or React work, **REQUIRED REFERENCE:** read
   coordinator and delegate each concern to a focused helper.
 - Group related persistence, event, and logging operations when they make the
   entry point long.
-- Usually prefer a named `const` boolean over writing a check into a
-  condition as-is. Words are easier to read than logical gates.
+- Name non-straightforward checks as `const` booleans (null checks can stay
+  inline). When composing several, add one more `const` for the overall
+  decision in plain English, and put only that name in the `if`.
+
+```ts
+const isTheExpectedTurn = latestTurn?.turnId === expectedTurnId;
+const isLatestTurnStillRunning = latestTurn?.status === 'running';
+
+const shouldKeepExistingState =
+  latestTurn === null || !isTheExpectedTurn || isLatestTurnStillRunning;
+
+if (shouldKeepExistingState) {
+  return state;
+}
+```
+
 - Keep an obvious call or small object literal inline; do not hide it behind a
   forwarding helper.
 - Prefer guard clauses and a visible happy path over nesting.
@@ -96,7 +110,8 @@ Never extract solely to satisfy a number.
 ## Common mistakes
 
 - **Tiny helper:** use a named local value or keep the obvious call inline.
-- **Inline condition:** pull the check into a named boolean, then use that name.
+- **Inline condition:** name non-straightforward checks and the overall
+  decision; use only that name in the `if`.
 - **Magic literal:** name its meaning.
 - **Throw without a log:** create one message, log it, then throw it.
 - **Deep nesting:** reject invalid cases early.
@@ -115,3 +130,4 @@ file shape and extraction level.
 - Avoid scattering comments in too many places throughout a PR.
 - Keep backend layers separate: services must access the database through model-layer functions, not database models directly.
 - Keep `index.ts` files export-only. Do not put logic in them.
+- Using comments to overcome a code complexity, instead of making the code explain itself.
