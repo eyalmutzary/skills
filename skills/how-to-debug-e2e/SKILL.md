@@ -1,73 +1,67 @@
 ---
 name: how-to-debug-e2e
-description: Run a full autonomous e2e debug loop — mirror a staging backend locally, call its endpoints, read its logs, open a real browser against the local frontend, and iterate on fixes. Use when asked to debug something end to end, reproduce a bug in a real browser against staging data, or "run the e2e loop" for a monorepo service + microfrontend pair. TRIGGER on "debug e2e", "run e2e loop", "reproduce this in a browser", "mirror and debug", "test this against staging".
+description: Use when debugging client, server, or end-to-end behavior locally with Playwright and/or a mirrored staging backend.
 user-invocable: true
 allowed-tools: Read, Glob, Bash, AskUserQuestion, Skill
-compatibility: Requires monday-mirror, kubectl, tsh, Playwright (or system Chrome), Teleport access to the target cluster.
+compatibility: Client debugging requires Playwright or system Chrome; server debugging requires monday-mirror, kubectl, tsh, and Teleport access.
 ---
 
-# How to Debug E2E
+# Debug Locally
 
-Autonomous loop: real backend (mirrored staging) + real frontend (local dev server) +
-real browser, driven by you, with logs and endpoint calls as feedback. This skill is
-the glue between three things that already exist — don't reinvent them:
+Choose the smallest feedback loop that can answer the question. Do not start a mirror
+for a client-only problem or open a browser for a server-only problem.
 
-- **`monday-mirror:monday-mirror`** — starts/operates the mirrored backend.
-- **`monday-mirror:monday-mirror-feedback-loop`** — deeper verification (Kafka, OpenSearch,
-  Datadog) once the mirror is already running. Use it instead of this skill for those.
-- [mf-start.md](mf-start.md) — starts the local frontend Trident/Vite dev server for any
-  `mf-*` (worktree symlinks, port cleanup, compile poll). Prefer a repo-specific start
-  skill if one exists for that MF; otherwise follow `mf-start.md`.
+## Choose a mode
 
-If any of those skills exist in the current repo/plugins, invoke them for their step
-instead of copy-pasting their commands here — they're the source of truth and may have
-moved on since this was written.
+- **Client**: use Playwright to reproduce UI behavior, inspect console/network events,
+  or verify local frontend changes against the deployed backend.
+- **Server**: use monday-mirror, curl, and logs to verify an endpoint or backend code
+  path without a browser.
+- **End to end**: combine both when the behavior depends on local client and server code,
+  or when the failing layer is unknown.
 
-## Step 0 — Ask before guessing
+Infer required inputs from the conversation and code; ask only for unresolved details:
+the success criteria, relevant service or frontend, page or endpoint, shared staging
+test account and user IDs, and feature flags. Never use the user's personal staging
+account for browser debugging.
 
-Do not invent these. Ask the user (one question, multiple fields, or a couple of quick
-questions) if any are unclear from the conversation or the code:
+Use these workflows as their source of truth:
 
-1. **Which backend service** to mirror (e.g. `workflow-chat`), and **which frontend/UI**
-   it powers (which microfrontend, which page/panel to open once logged in).
-2. **Which staging account/user to impersonate** — `x-impersonated-account-id` /
-   `x-impersonated-user-id`. Never use the user's own personal staging account for a
-   browser session; ask if there's a shared test account for this purpose.
-3. **Any feature flag** that gates the UI. If the UI never shows up, this is the first
-   thing to check — not a frontend bug until this is ruled out.
-4. What "done" looks like — a specific repro (bug), or an open-ended poke-around.
+- **`monday-mirror:monday-mirror`**: start and operate the mirror.
+- **`monday-mirror:monday-mirror-feedback-loop`**: inspect Kafka, OpenSearch, or Datadog
+  after the mirror is running.
+- [mf-start.md](mf-start.md): start a Trident/Vite `mf-*` frontend. Prefer a
+  repo-specific start skill when available.
 
-Everything below assumes these are resolved.
+## Client loop: Playwright
 
-## Step 1 — Clear stale state
+1. If testing local frontend changes, start the frontend with its repo-specific skill
+   or [mf-start.md](mf-start.md). Wait for the bundle URL; a running process does not
+   mean Vite finished compiling.
+2. Reuse an existing session/login helper, such as `curtain-core`'s
+   `storageState.json` flow.
+3. Drive the real page with Playwright. Inspect console and network events as well as
+   visible state; empty streams and silently swapped bundles may not show UI errors.
+4. When loading a local bundle, launch Chrome with **`--disable-web-security`**.
+   Otherwise private-network checks may silently fall back to the deployed bundle.
 
-Old servers and locks from a previous session are the #1 cause of "it's just not working":
+If Playwright browser binaries are unavailable, launch with `channel: 'chrome'` to use
+system Chrome.
+
+## Server loop: monday-mirror, curl, and logs
+
+Clear stale mirror processes first; reuse only a verified healthy mirror:
 
 ```bash
 lsof -nP -iTCP -sTCP:LISTEN | grep -E ':(3002|3130|8910|8900|3000|8080|4000)\b'
 pkill -f "monday-mirror" 2>/dev/null; pkill -f "mirrord intproxy" 2>/dev/null; sleep 2
 ```
-Kill anything found on those ports before continuing, unless it's a healthy mirror/dev
-server you intend to reuse.
 
-## Step 2 — Start the mirror
-
-Invoke `monday-mirror:monday-mirror` (Skill tool). It handles Teleport/kube pre-flight,
-routing key resolution (`~/.monday-mirror/{routingKey,userEmail,kubeContext}`), and
-launch. Wait for `http://localhost:3130/liveness` → `200` before moving on — this can
-take a few minutes, don't assume it's instant.
-
-**Gotchas not always obvious from the mirror's own output:**
-- Node version may need pinning (check the service's `.nvmrc`; `nvm use` it) before
-  launch — a wrong Node version fails silently or late.
-- `http://localhost:8910/` returning `404` is healthy — it means the proxy is up but `/`
-  isn't a real route. Only worry if `/proxy/...` calls also fail.
-
-## Step 3 — Sanity-check the backend with curl before touching a browser
-
-Read `monday-mirror`'s `references/dev-server-api.md` for the exact header set
-(`x-target-app-name`, `x-use-impersonation`, `x-impersonated-account-id`,
-`x-impersonated-user-id`, `x-impersonated-app-name: monday`, `baggage: routingKey=<key>`).
+1. Invoke `monday-mirror:monday-mirror`.
+2. Wait for `http://localhost:3130/liveness` to return `200`; startup can take several
+   minutes.
+3. Read `monday-mirror`'s `references/dev-server-api.md` for the current headers, then
+   call the endpoint directly:
 
 ```bash
 curl -s "http://localhost:8910/proxy/<path>" \
@@ -79,64 +73,42 @@ curl -s "http://localhost:8910/proxy/<path>" \
   -H "baggage: routingKey=<key>" -i
 ```
 
-**Trap:** the proxy layer often returns HTTP `200` no matter what. Check the response
-for an `x-upstream-status` header (or the actual response body) for the real status —
-otherwise a broken endpoint looks fine.
+The proxy may return `200` for upstream failures. Check `x-upstream-status` and the
+response body. Inspect backend logs and add tagged logs around silent code paths when
+needed.
 
-Confirm the endpoint responds correctly before wiring up a browser. If it's wrong here,
-fix it here — don't debug backend logic through a browser.
+Mirror gotchas:
 
-## Step 4 — Start the frontend dev server
+- Use the service's `.nvmrc`; the wrong Node version may fail late or silently.
+- A `404` from `http://localhost:8910/` is healthy if `/proxy/...` calls work.
 
-Follow [mf-start.md](mf-start.md) (or a repo-specific start skill for that MF if one
-exists). It resolves `$MF_NAME` / `$PORT`, handles worktree `node_modules` symlinks,
-clears the port, and polls the bundle URL until Vite has compiled — do not treat
-"process started" as ready.
+## End-to-end loop
 
-## Step 5 — Drive a real browser
+1. Run the server loop and verify the backend directly before adding the browser.
+2. Run the client loop.
+3. Inject **`baggage: routingKey=<key>` per URL** with `page.route(...)` so browser
+   requests reach the mirror. Do not use a global header: it breaks third-party CDN
+   preflights. Without the header, requests reach the deployed pod and may return
+   misleadingly valid but empty or stale data.
+4. Change one thing, rerun only the affected check, and repeat. Restart the mirror only
+   when necessary.
 
-Two flags are load-bearing and easy to lose — see [[wfc-browser-debug-loop]] memory /
-`curtain-core`'s own `default.config.mjs` for where these come from:
+## Clean up
 
-1. **`--disable-web-security`** on the Chrome launch. Without it, Chrome blocks the
-   local-dev-server fetch as a private-network violation, and the page silently falls
-   back to the *deployed* bundle — your local changes never actually load, with no error.
-2. **`baggage: routingKey=<key>` injected per-URL** via `page.route(...)`, not as a
-   global header — a global header breaks preflight on third-party CDN calls. Without
-   it, requests hit the deployed pod instead of your mirror: you'll see `200`s with
-   empty/stale data, which looks exactly like a frontend bug but isn't.
-
-Auth: reuse the platform's existing session/login helper if one exists (e.g.
-`curtain-core`'s `storageState.json` flow) rather than scripting a manual login.
-
-Playwright environment notes: if no browser binaries are installed
-(`~/Library/Caches/ms-playwright` empty), launch with `channel: 'chrome'` to use the
-system browser instead of downloading one.
-
-## Step 6 — Read logs and iterate
-
-- Mirror backend logs print to the terminal/log file you launched it into — tag your own
-  log lines (`logger.info({ tag: 'debug' }, ...)`) around the code path you're chasing;
-  background workers often log nothing by default.
-- Browser-side: check the Playwright page's console/network events, not just visual
-  state — an empty SSE stream or a silently-swapped bundle won't show as a UI error.
-- Make a change, re-run only the affected step (usually Step 3 or Step 5 — you rarely
-  need to restart the mirror), confirm, repeat.
-
-## Step 7 — Clean up
+Stop only the processes started for this investigation:
 
 ```bash
 pkill -f monday-mirror; pkill -f "mirrord intproxy"
 lsof -nP -iTCP:3130   # confirm nothing lingers; kill leftover PIDs if the port stays held
 ```
 
-## Quick troubleshooting
+## Troubleshooting
 
-| Symptom | Likely cause | Check |
-|---|---|---|
-| UI panel never appears | Feature flag off for the impersonated account | Confirm the flag before assuming a frontend bug |
-| Local edits don't show in browser | Chrome blocked the dev-server fetch, fell back to deployed bundle | Add `--disable-web-security` |
-| Endpoint returns 200 but data is empty/stale | Request hit the deployed pod, not the mirror | Check per-URL `baggage: routingKey` is actually attached |
-| curl proxy call "succeeds" but is wrong | Proxy masks real status as 200 | Read `x-upstream-status`, not the HTTP status |
-| `Connection refused` on 3130/8910 | Mirror not up yet, or died | Re-check liveness; re-run Step 2 |
-| Test/browser session can't reach staging account | Used personal account instead of a shared test account | Ask which test account to impersonate |
+- **UI is missing**: confirm the feature flag for the impersonated account.
+- **Local edits do not appear**: check `--disable-web-security`; the browser may be
+  using the deployed bundle.
+- **Data is empty or stale in e2e mode**: verify per-URL `baggage`; the request may
+  have reached the deployed pod.
+- **Proxy call returns a misleading `200`**: inspect `x-upstream-status` and the body.
+- **Ports 3130/8910 refuse connections**: recheck liveness; restart the mirror if needed.
+- **Account is inaccessible**: verify that impersonation uses a shared test account.
