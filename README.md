@@ -6,7 +6,6 @@ Personal [Claude Code](https://docs.anthropic.com/en/docs/claude-code) / agent s
 
 | Skill | What it does |
 | --- | --- |
-| `explain-diff-html` | Rich interactive HTML explanation of a diff, branch, or PR |
 | `how-to-debug-e2e` | Debug client, server, or end-to-end behavior locally (Playwright / mirrored staging) |
 | `how-to-explain` | Explain a concept, bug, gap, or system behavior step by step |
 | `how-to-explain-plan` | Walk through an implementation plan one step at a time |
@@ -14,6 +13,7 @@ Personal [Claude Code](https://docs.anthropic.com/en/docs/claude-code) / agent s
 | `how-to-help-me-review-pr` | Prepare you to manually review and understand a PR efficiently |
 | `how-to-implement-tasks` | Implement an ordered task breakdown as a stack of reviewed, verified PRs |
 | `how-to-write-code` | Coding conventions (shape, naming, frontend guidance) |
+| `explain-diff-html` | Rich interactive HTML explanation of a diff, branch, or PR |
 
 ## Output styles
 
