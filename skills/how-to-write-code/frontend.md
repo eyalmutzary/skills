@@ -12,8 +12,9 @@ Apply the main skill plus these frontend rules.
 - For every collection rendered with `.map`, move the rendered item to its own
   component file.
 - Move substantial stateful logic to a custom hook.
-- Put all prop and state types in `types.ts`, including types for local
-  components; use `constants.ts` when there are more than two constants.
+- Keep a component's props interface in its own file above the function
+  declaration; put every other type in `types.ts`, and use `constants.ts` when
+  there are more than two constants.
 
 ## Rendering
 
