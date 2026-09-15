@@ -35,14 +35,19 @@ PR 1 — <title>  (tasks A1-A3, size M)
 
 Ask for sign-off with `AskUserQuestion`. **Do not write code before approval.**
 
+Also ask if the developer will be AFK during implementation. If so, stop asking questions: skip anything unclear when possible, and report every skip at the end.
+
 ### Build a PR stack, one PR at a time
 
 Actively implement only one PR at a time, but keep multiple completed PRs open as a stack.
 Within each PR, run tasks in dependency order and finish one before starting the next.
 
-Branch PR 1 from the target base, usually fresh `origin/master`. Branch every later PR
-from the previous PR's branch and open it with the previous PR as its base. Do not wait
-for earlier PRs to merge before building the next one.
+Use the `gh stack` extension (`gh stack init`, `gh stack add`, `gh stack submit`) instead
+of managing branches and bases by hand. Branch PR 1 from the target base, usually fresh
+`origin/master`, with `gh stack init`. Add every later PR on top with `gh stack add`, which
+branches it from the previous PR's branch and sets that branch as its base. Do not wait
+for earlier PRs to merge before building the next one. After any PR in the stack merges,
+run `gh stack sync` (or `gh stack rebase`) before continuing, instead of rebasing by hand.
 
 ### Pin the environment once
 
@@ -66,6 +71,9 @@ facts after every compaction; never re-derive them.
 Run `git fetch` first because bots may push to the branch. Stage named files, never
 `git add -A` or `git add .`. Check staged files for scratch files, `.bak` files, and
 secrets. Use `[PR 3] ...` in the title and include one bullet per task.
+
+Push and open the PR with `gh stack submit`, run from anywhere in the stack; it pushes
+every branch and creates or updates each PR with the right base automatically.
 
 Run the **full test suite once**, here. Before fixing red CI, confirm the check is green
 on the base branch. Then continue with the next approved PR.
@@ -103,7 +111,8 @@ Have an Opus sub-agent reviewer inspect the task's **uncommitted** diff with
 `/mattpocock-skills:code-review`. Request incremental findings and do not block waiting.
 
 For each finding: implementer fixes → independent verification → reviewer rechecks only
-the changed area.
+the changed area. Cap this cycle at 3 rounds. Past that, keep going only for a major
+finding; skip remaining minor/style findings and move on.
 
 ### 4. Manually verify the smallest sufficient scope
 
