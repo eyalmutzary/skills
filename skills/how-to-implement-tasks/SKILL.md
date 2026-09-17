@@ -6,98 +6,124 @@ user-invocable: true
 
 # How to implement tasks
 
-Requires an unambiguous work breakdown with tasks, dependencies, sizes, and order.
-Otherwise, stop and report what is missing.
+Input: an unambiguous work breakdown with tasks, dependencies, sizes, and order. If any
+of these is missing, stop and report what is missing.
 
-The process has two layers:
+## Contract
 
-- **Task iteration:** implement, verify, review, and manually validate one task.
-- **Loop rules:** choose and order work, manage PR boundaries and agents, ship, then repeat.
+Re-read this section and the run file after every compaction and before every task.
 
-## Loop rules
+1. **You orchestrate; sub-agents write code.** Every production and test change comes from
+   an implementer agent, including review fixes, lint fixes, and one-line changes. Your own
+   edits are limited to `/tmp` files, `gh stack` conflict resolution, and merging shared
+   files (locales, barrel `index.ts`, generated types) collected from parallel implementers.
+2. **Every task passes four gates in order:** implement → verify → review → manual
+   validation. Commit after gate 4.
+3. **One approval covers the whole batch.** After sign-off, the turn ends when every
+   approved PR is submitted or recorded as blocked. Ask the developer only for a hard
+   blocker (defined below), and only in `present` mode.
+4. **In `afk` mode, decide, record, continue.** Every decision and skip goes in the run file
+   and the final report.
+5. **If a required agent or tool is unavailable, record the blocker and stop.** The work
+   stays undone rather than done by you.
 
-### Plan the next PRs
+## Run file
 
-Read the breakdown for order and sizes. Cross-reference any live tracker (Monday, Jira,
-Linear): the breakdown provides order; the tracker provides status.
+Before PR 1, write `/tmp/<project>-run.md` and keep it current at every gate transition:
 
-Propose the next useful group of PRs in merge order.
+```
+mode:         afk | present
+approved:     PR 1 (A1-A3), PR 2 (B1-B2), ...
+current:      PR 1 / task A2 / gate 3 review
+agents:       implementer=<name>  reviewer=<name>
+validation:   unit tests | Playwright | monday-mirror | full e2e
+e2e inputs:   test account <id>, user <id>, flags <...>
+decisions:    <task>: <choice made and why>
+skipped:      <task>: <blocker>
+
+node:         <output of `node -p process.execPath`>
+test cmd:     <exact `scripts.test` from package.json, flags included>
+typecheck:    <e.g. npx tsc --noEmit -p tsconfig.json>
+lint:         <raw-output command>
+dev server:   <type (Vite/webpack), port, URL that proves it compiled>
+service kill: lsof -nP -iTCP:<port> -t | xargs kill
+branch base:  <what to branch from>
+```
+
+Use `node -p process.execPath`; nvm is a shell function, so `which node` misleads. Derive
+these facts once and read them from the file afterwards.
+
+## Hard blockers and decisions
+
+A **hard blocker** is one of: a destructive or irreversible choice, missing credentials or
+access, an unavailable agent or tool, or a spec contradiction that changes user-visible
+behavior. In `present` mode, ask with `AskUserQuestion`. In `afk` mode, skip the task,
+record the blocker, and continue with the next task that does not depend on it.
+
+Everything else is a **decision**: pick the safest reasonable option, record it, continue.
+
+## Preflight, once
+
+The user will provide you a breakdown of next possible tasks.
+Propose the next useful group of PRs in merge order:
 
 ```
 PR 1 — <title>  (tasks A1-A3, size M)
   One sentence: what it does and why it lands here.
+  Validation: <how this PR will be tested>.
 ```
 
 - Group tasks that must be reviewed together; split large efforts.
 - Separate a backend contract from a frontend consumer that depends on it being merged.
   Read enough of the spec to identify this before proposing.
 - Flag PRs blocked outside the repo, such as by an API owner, flag, or token.
+- Choose how to validate each PR: unit tests, client-side with Playwright, server-side
+  with monday-mirror, or full e2e.
 
-Ask for sign-off with `AskUserQuestion`. **Do not write code before approval.**
+In the same `AskUserQuestion`, ask for sign-off, whether the developer will be AFK, and any
+e2e inputs the validation scopes need (shared test account and user IDs, feature flags).
+Write the answers and scopes to the run file, then start PR 1. Code is written only after
+this approval.
 
-Also ask if the developer will be AFK during implementation. If so, stop asking questions: skip anything unclear when possible, and report every skip at the end.
+## PR stack
 
-### Build a PR stack, one PR at a time
+Actively implement one PR at a time and keep completed PRs open as a stack. Within a PR,
+run tasks in dependency order and finish one before starting the next.
 
-Actively implement only one PR at a time, but keep multiple completed PRs open as a stack.
-Within each PR, run tasks in dependency order and finish one before starting the next.
+Use the `gh stack` extension. Branch PR 1 from the target base, usually fresh
+`origin/master`, with `gh stack init`. Add each later PR with `gh stack add`, which
+branches from the previous PR and sets it as base. Start the next PR as soon as the
+previous one is submitted. After any PR merges, run `gh stack sync` before continuing.
 
-Use the `gh stack` extension (`gh stack init`, `gh stack add`, `gh stack submit`) instead
-of managing branches and bases by hand. Branch PR 1 from the target base, usually fresh
-`origin/master`, with `gh stack init`. Add every later PR on top with `gh stack add`, which
-branches it from the previous PR's branch and sets that branch as its base. Do not wait
-for earlier PRs to merge before building the next one. After any PR in the stack merges,
-run `gh stack sync` (or `gh stack rebase`) before continuing, instead of rebasing by hand.
+## Task loop
 
-### Pin the environment once
+### Gate 1: Implement
 
-Before PR 1, write these to `/tmp/<project>-facts.md`:
+Create `/tmp/<project>-<task>-review.md`, the shared review thread, and include its path
+in every implementer and reviewer prompt. All reviewer↔implementer communication goes
+through this file, so the code stays free of review remarks:
 
 ```
-node:        <output of `node -p process.execPath`>
-test cmd:    <the exact `scripts.test` from package.json, flags included>
-typecheck:   <e.g. npx tsc --noEmit -p tsconfig.json>
-lint:        <the raw-output command>
-dev server:  <type (Vite/webpack), port, the URL that proves it compiled>
-service kill: lsof -nP -iTCP:<port> -t | xargs kill
-branch base: <what to branch from>
+## R1 (reviewer)
+1. <file:line> <finding>
+## R1 (implementer)
+1. fixed in <commit/diff area> | declined: <one-line reason>
 ```
 
-Use `node -p process.execPath`, not `which node`; nvm is a shell function. Re-read the
-facts after every compaction; never re-derive them.
-
-### Ship after all PR tasks are complete
-
-Run `git fetch` first because bots may push to the branch. Stage named files, never
-`git add -A` or `git add .`. Check staged files for scratch files, `.bak` files, and
-secrets. Use `[PR 3] ...` in the title and include one bullet per task.
-
-Push and open the PR with `gh stack submit`, run from anywhere in the stack; it pushes
-every branch and creates or updates each PR with the right base automatically.
-
-Run the **full test suite once**, here. Before fixing red CI, confirm the check is green
-on the base branch. Then continue with the next approved PR.
-
-## One task iteration
-
-### 1. Delegate
-
-Create `/tmp/<project>-<task>-review.md` and include its path in every implementer and
-reviewer prompt. This is their shared review thread.
-
-Spawn one named Sonnet implementer. Include:
+Spawn one Sonnet sub-agent implementer with:
 
 - The single task ID and its **invariants**, not only its task text.
-- Exact typecheck, scoped-test, and lint commands from the facts file.
-- `how-to-write-code` and `/mattpocock-skills:implement` skills.
-- Owned files. If a task uses parallel agents, name each agent and forbid shared files
-  such as locales, barrel `index.ts` files, and generated types; collect those yourself.
-- "Do not run the full test suite." Scoped tests only.
-- "Report: files changed, tests added, open questions." Not a narrative.
+- Exact typecheck, scoped-test, and lint commands from the run file.
+- The `how-to-write-code` and `/mattpocock-skills:implement` skills.
+- Its owned files. For parallel agents, name each and give each exclusive files; shared
+  files (locales, barrels, generated types) are collected and merged by you.
+- "Run scoped tests only; the full suite runs once at ship time."
+- "Report as structured facts: files changed, tests added, open questions."
+- "Answer review findings in the review thread file; the code carries only the fix."
 
-### 2. Verify independently
+### Gate 2: Verify
 
-Never accept "all green" without checking:
+Check every claim yourself:
 
 ```bash
 grep -rn "<the symbol it claims it added>" <path>
@@ -105,77 +131,86 @@ git diff --stat
 <typecheck>  &&  <scoped tests>  &&  <lint on changed files only>
 ```
 
-**Mutation-test at least one new test:** back up the source with `cp file file.bak`,
-break the tested line, confirm red, then restore from `.bak`.
+**Mutation-test at least one new test:** `cp file file.bak`, break the tested line, confirm
+red, restore from `.bak`.
 
-### 3. Review before commit
+### Gate 3: Review
 
-Have an Opus sub-agent reviewer inspect the task's **uncommitted** diff with
-`/mattpocock-skills:code-review`. The reviewer appends numbered findings to the review
-thread, then returns control.
+Spawn an Opus reviewer with `/mattpocock-skills:code-review` on the task's **uncommitted**
+diff. It appends numbered findings to the review thread and returns.
 
-For each round: implementer reads the thread, fixes or appends a concise response →
-independent verification → reviewer rereads the thread, rechecks the changed area, and
-appends its verdict. Serialize writes; pass turns by telling the agent the thread changed,
-without relaying its contents. Cap this cycle at 3 rounds. Past that, keep going only for
-a major finding; skip remaining minor/style findings and move on.
+Per round: implementer reads the thread and fixes or appends a concise response → you
+re-run gate 2 → reviewer rereads the thread, rechecks the changed area, appends a verdict.
+Serialize writes; pass turns by telling the agent the thread changed, without relaying its
+contents. Cap at 3 rounds; past that, continue only for a major finding and record skipped
+minor findings as decisions.
 
-### 4. Manually verify the smallest sufficient scope
+### Gate 4: Manual validation, smallest sufficient scope
 
-- Pure logic without I/O: scoped tests plus mutation test.
+- Pure logic without I/O: gate 2 is sufficient.
 - Server only: call the real endpoint and read real logs.
-- Client only: use a real browser against a real backend; jsdom does not count.
-- Cross-layer contract: run full e2e.
+- Client only: a real browser against a real backend; jsdom does not count.
+- Cross-layer contract: full e2e.
 
-For a live backend or browser, run **`/how-to-debug-e2e`** in a forked sub-agent so only
-its verdict returns. Keep the mirror running between consecutive tasks that need it.
+For a live backend or browser, read and follow
+`~/.claude/skills/how-to-debug-e2e/SKILL.md`, using the `e2e inputs` from the run file.
+Keep the mirror running between consecutive tasks that need it.
 
-The task is complete only after implementation, independent verification, review
-findings, and required manual verification are all complete.
+Commit, update `current` in the run file, and start the next task.
+
+## Ship a PR
+
+After the last task of a PR: `git fetch` first, since bots may push to the branch. Stage
+named files and check the staged list for scratch files, `.bak` files, temporary hacks,
+and secrets. Title `[PR n] ...` with one bullet per task.
+
+`gh stack submit` pushes every branch and creates or updates each PR with the right base.
+
+Run the **full test suite once, here**. Before fixing red CI, confirm the check is green
+on the base branch. Then start the next approved PR.
+
+## Finish
+
+When every approved PR is submitted or blocked, report: PR links, decisions, skipped
+tasks with blockers, and open review findings.
 
 ## Agent heartbeat
 
 The prompt cache TTL is **5 minutes**.
 
-- While a sub-agent works, call `ScheduleWakeup` every 240s, never 300s. Stay below
-  270s or wait 1200s+. Each heartbeat runs only `ListAgents` and `git diff --stat`.
-- Keep heartbeat prompts short and point to the facts file.
-- Never wait with bash `sleep`. For a known PID, block in one turn:
+- While a sub-agent works, call `ScheduleWakeup` every 240s (stay below 270s). Each heartbeat runs only `ListAgents` and `git diff --stat`.
+- Keep heartbeat prompts short and point to the run file.
+- For a known PID, block in one turn instead of polling:
   `while kill -0 $PID 2>/dev/null; do sleep 5; done; tail -40 /tmp/out.log`.
 - After two heartbeats without file changes, `SendMessage` for status. After two more
   without a reply, send one blocking "stop, or confirm you own this" message, await the
-  answer, then take over. Never take over silently.
+  answer, then take over and record it.
 
-## Common mistakes
+## Lessons from past runs
 
-### Waiting and sub-agents
+### Sub-agents
 
 - Redirect long-running output to a file, then tail the file; piping through `tail` may
   buffer and look hung.
-- Do not poll with `sleep`; follow the heartbeat rules.
-- Calling `Agent` with an existing name spawns another agent. Use `SendMessage`.
-- `pkill -f "<pattern>"` in a shared tree kills other agents' runs. Kill by tracked PID only.
-- Ask before editing files an agent still owns.
-- Read single documents directly; do not delegate them.
-- Request structured facts, not narrative reports you will not use.
+- Message a live agent with `SendMessage`; `Agent` with an existing name spawns a second one.
+- Kill by tracked PID; `pkill -f` in a shared tree kills other agents' runs.
+- Ask an agent before editing files it still owns.
+- Read single documents yourself; delegate work, not reading.
 
 ### Investigation
 
-- **After two failed guesses, stop guessing.** Read config, README, or actual output.
-- Types cannot tell you what a runtime throws. Log it at runtime.
-- List the directory before `sed` or `grep` on an unread path.
-- Do not announce a root cause before testing it. State a hypothesis and run the
-  cheapest falsifying probe.
-- Prove a failure is new before blaming the change:
-  `git show <base>:<file> | grep <thing>`.
+- After two failed guesses, read config, README, or actual output.
+- Log at runtime to learn what a call throws; types describe the happy path.
+- List a directory before running `sed` or `grep` on an unread path.
+- State a hypothesis and run the cheapest falsifying probe before naming a root cause.
+- Prove a failure is new before blaming the change: `git show <base>:<file> | grep <thing>`.
 - Suspect the harness before the product.
-- Distinguish flakes by rerunning failing suites alone with `--runInBand`.
+- Rerun a failing suite alone with `--runInBand` to distinguish a flake.
 
 ### Shell and tree safety
 
 - Use absolute paths; the cwd may reset between calls.
 - Quote globs (`--include='*.ts'`) or use `Grep`; scope searches to a directory.
-- Restore mutation tests from the `cp` backup, never `git checkout`, which may erase
-  unrelated edits in the file.
-- Scratch docs go to `/tmp` from birth, never into the tree you are about to commit.
+- Restore mutation tests from the `.bak` copy; it preserves unrelated edits in the file.
+- Scratch docs live in `/tmp` from birth.
 - Log temporary hacks when introduced and diff the list before staging.
