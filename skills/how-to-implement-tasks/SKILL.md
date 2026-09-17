@@ -82,6 +82,9 @@ on the base branch. Then continue with the next approved PR.
 
 ### 1. Delegate
 
+Create `/tmp/<project>-<task>-review.md` and include its path in every implementer and
+reviewer prompt. This is their shared review thread.
+
 Spawn one named Sonnet implementer. Include:
 
 - The single task ID and its **invariants**, not only its task text.
@@ -108,11 +111,14 @@ break the tested line, confirm red, then restore from `.bak`.
 ### 3. Review before commit
 
 Have an Opus sub-agent reviewer inspect the task's **uncommitted** diff with
-`/mattpocock-skills:code-review`. Request incremental findings and do not block waiting.
+`/mattpocock-skills:code-review`. The reviewer appends numbered findings to the review
+thread, then returns control.
 
-For each finding: implementer fixes → independent verification → reviewer rechecks only
-the changed area. Cap this cycle at 3 rounds. Past that, keep going only for a major
-finding; skip remaining minor/style findings and move on.
+For each round: implementer reads the thread, fixes or appends a concise response →
+independent verification → reviewer rereads the thread, rechecks the changed area, and
+appends its verdict. Serialize writes; pass turns by telling the agent the thread changed,
+without relaying its contents. Cap this cycle at 3 rounds. Past that, keep going only for
+a major finding; skip remaining minor/style findings and move on.
 
 ### 4. Manually verify the smallest sufficient scope
 
