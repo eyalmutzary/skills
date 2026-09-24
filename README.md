@@ -1,48 +1,37 @@
 # Eyal's Claude Code skills
 
-Personal [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skills and config: a practical workflow for planning, implementing, and merging software with agents. Built on [Matt Pocock's skills](https://github.com/mattpocock/skills), wrapped into habits that work together.
+A set of [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skills for planning, implementing, reviewing, and merging software.
 
-## Quick start (plugin — recommended)
+## Install
 
-1. **Add the marketplace and install the plugin** — in Claude Code:
+Run these commands inside Claude Code:
 
-   ```
-   /plugin marketplace add eyalmutzary/skills
-   /plugin install eyal-skills@eyalmutzary
-   ```
-
-   Or from the shell:
-
-   ```bash
-   claude plugin marketplace add eyalmutzary/skills
-   claude plugin install eyal-skills@eyalmutzary
-   ```
-
-2. **Configure your machine** — skills load from the plugin as `/eyal-skills:<skill-name>`. Settings, `CLAUDE.md`, and the status line still live under `~/.claude`. Run:
-
-   ```
-   /eyal-skills:how-to-setup-eyal-skills
-   ```
-
-   Answer the prompts (skip copying skills locally if you keep the plugin). The agent merges settings, optionally installs the status line and personalized `CLAUDE.md`, and installs `mattpocock-skills` when planning skills are missing.
-
-3. **Restart** Claude Code after setup.
-
-4. **When stuck** — `/eyal-skills:how-to-use-eyal-skills` and say where you are (e.g. “I have a spec but no tickets”).
-
-Do not install the plugin and a full local copy of the same skills — pick one source to avoid duplicates.
-
-## Quick start (local copy)
-
-For an editable copy under `~/.claude/skills` (no plugin):
-
-```bash
-git clone --depth 1 https://github.com/eyalmutzary/skills /tmp/eyal-skills
-mkdir -p ~/.claude/skills
-cp -R /tmp/eyal-skills/skills/how-to-setup-eyal-skills ~/.claude/skills/
+```text
+/plugin marketplace add eyalmutzary/skills
+/plugin install eyal-skills@eyalmutzary
+/eyal-skills:how-to-setup-eyal-skills
 ```
 
-Then run `/how-to-setup-eyal-skills` and choose **Yes** for the local skill copy.
+The first command tells Claude where the plugin lives.  
+The second installs the skills.  
+The third configures the optional extras:
+
+- Claude settings and the ELI5 output style
+- A personalized `CLAUDE.md`
+- Eyal's status line
+- Matt Pocock's planning skills
+
+Restart Claude Code after setup.
+
+Plugin skills start with `eyal-skills:` to avoid conflicts with other plugins. For example:
+
+```text
+/eyal-skills:how-to-use-eyal-skills
+```
+
+Use that skill whenever you are unsure what to do next. Tell it where you are, such as: “I have a spec but no tickets.”
+
+> This plugin is installed directly from GitHub. It is not yet listed in Anthropic's public plugin directory.
 
 ## Workflow (high level)
 
@@ -52,7 +41,7 @@ Then run `/how-to-setup-eyal-skills` and choose **Yes** for the local skill copy
 | **Implement** | AFK | `/how-to-implement-tasks` (implement + review loop, `/how-to-write-code`, `/how-to-debug-e2e`, open PRs) |
 | **Review & merge** | Half | Review stack, `/how-to-babysit-pr`, `/how-to-fix-pr-comments`, then plan the next batch |
 
-Planning steps are a **menu**, not a checklist — scale with feature size and how long you will run unattended. Details: `/eyal-skills:how-to-use-eyal-skills` (or `/how-to-use-eyal-skills` if you use a local copy).
+Planning steps are a **menu**, not a checklist. Use more of them for large or complex work. See `/eyal-skills:how-to-use-eyal-skills` for guidance.
 
 Matt's plugin supplies `/grill-with-docs`, `/wayfinder`, `/to-spec`, and `/to-tickets`. The setup skill installs it when needed.
 
