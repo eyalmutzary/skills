@@ -1,0 +1,33 @@
+{
+  "name": "eyal-skills",
+  "version": "1.0.0",
+  "description": "Eyal's agent skills for shipping with Claude Code — planning workflow, autonomous implementation, PR babysitting, and local setup.",
+  "author": {
+    "name": "Eyal Mutzary",
+    "url": "https://github.com/eyalmutzary"
+  },
+  "homepage": "https://github.com/eyalmutzary/skills",
+  "repository": "https://github.com/eyalmutzary/skills",
+  "keywords": [
+    "claude-code",
+    "skills",
+    "workflow",
+    "implementation",
+    "planning",
+    "code-review",
+    "pull-requests"
+  ],
+  "skills": [
+    "./skills/how-to-setup-eyal-skills",
+    "./skills/how-to-use-eyal-skills",
+    "./skills/how-to-explain",
+    "./skills/how-to-explain-plan",
+    "./skills/how-to-write-code",
+    "./skills/how-to-implement-tasks",
+    "./skills/how-to-debug-e2e",
+    "./skills/how-to-babysit-pr",
+    "./skills/how-to-fix-pr-comments",
+    "./skills/how-to-help-me-review-pr",
+    "./skills/explain-diff-html"
+  ]
+}

@@ -12,7 +12,8 @@ Source of truth: https://github.com/eyalmutzary/skills. Always read the files fr
 
 1. `git clone --depth 1 https://github.com/eyalmutzary/skills /tmp/eyal-skills` (remove any old copy first).
 2. Ask all questions in one `AskUserQuestion` round:
-   - **Status line** — install Eyal's status line (ccstatusline: model, context size, git changes, dir, worktree, branch)? Options: "Yes (Recommended)", "No".
+   - **Local skill copy** — copy skills and output styles into `~/.claude`? Options: "No (Recommended if `eyal-skills` plugin is installed)", "Yes (editable local copy)".
+   - **Status line** — install Eyal's status line (ccstatusline)? Options: "Yes (Recommended)", "No".
    - **CLAUDE.md** — replace `~/.claude/CLAUDE.md` with Eyal's version, personalized with your name? Options: "Yes (Recommended)", "No".
    - If CLAUDE.md is "Yes", ask for the user's first name. Offer `git config user.name` as the default.
 
@@ -26,11 +27,11 @@ Merge `/tmp/eyal-skills/settings-public.json` into `~/.claude/settings.json` (cr
 - Copy `statusLine` only if the user said yes.
 - Keep every existing key the repo does not set. Write valid JSON.
 
-## 3. Skills and output styles
+## 3. Skills and output styles (only if local copy = Yes)
 
 - Copy each folder in `/tmp/eyal-skills/skills/` to `~/.claude/skills/<name>/`.
 - Copy each file in `/tmp/eyal-skills/output-styles/` to `~/.claude/output-styles/`.
-- A same-named skill or style is replaced; list the replaced ones in the summary.
+- List replaced names in the summary. If skipped, say skills come from `/eyal-skills:…` via the plugin.
 
 ## 4. CLAUDE.md (only if yes)
 

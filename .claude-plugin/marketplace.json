@@ -1,0 +1,23 @@
+{
+  "name": "eyalmutzary",
+  "owner": {
+    "name": "Eyal Mutzary",
+    "url": "https://github.com/eyalmutzary"
+  },
+  "description": "Eyal's Claude Code skills — workflow, implementation, and setup.",
+  "plugins": [
+    {
+      "name": "eyal-skills",
+      "source": "./",
+      "description": "Planning-to-merge workflow skills plus setup for ~/.claude settings, ELI5 output style, and status line.",
+      "category": "development",
+      "keywords": [
+        "claude-code",
+        "skills",
+        "workflow",
+        "planning",
+        "pull-requests"
+      ]
+    }
+  ]
+}

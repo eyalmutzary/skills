@@ -11,6 +11,8 @@
 !settings-public.json
 !statusline-command.sh
 !statusline/
+!.claude-plugin/
+!.claude-plugin/**
 
 # Junk inside allowed folders
 **/.DS_Store
