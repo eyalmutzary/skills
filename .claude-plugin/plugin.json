@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Eyal's agent skills for shipping with Claude Code — planning workflow, autonomous implementation, PR babysitting, and local setup.",
   "author": {
-    "name": "Eyal Mutzary",
+    "name": "workflow-builder",
     "url": "https://github.com/eyalmutzary"
   },
   "homepage": "https://github.com/eyalmutzary/skills",
