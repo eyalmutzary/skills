@@ -50,18 +50,10 @@ chmod +x ~/.claude/statusline-command.sh
 
 Verify: `command -v ccstatusline` prints a path.
 
-## 6. Matt Pocock's skills
+## 6. Matt's planning skills
 
-The workflow uses `/grill-with-docs`, `/wayfinder`, `/to-spec`, `/to-tickets` from Matt's suite. If any are missing from the user's Claude setup, install the plugin yourself:
-
-```bash
-claude plugin install mattpocock-skills
-```
-
-If that command is unavailable or fails, try from inside a Claude Code session context or document the failure in the summary and what you tried.
-
-Done when those four skills are invocable or installation was attempted and reported.
+If any of `/grill-with-docs`, `/wayfinder`, `/to-spec`, `/to-tickets` is missing, run `claude plugin install mattpocock-skills`.
 
 ## 7. Summary
 
-Report what changed per step, the replaced skills, backup path, and Matt plugin install result. Mention restarting Claude Code if settings or plugins changed.
+What changed, backup path, plugin install outcome. Restart Claude Code if settings or plugins changed.
