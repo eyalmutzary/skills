@@ -18,6 +18,7 @@ The third configures the optional extras:
 
 - Claude settings and the ELI5 output style
 - A personalized `CLAUDE.md`
+- [RTK](https://github.com/rtk-ai/rtk), so shell output is filtered before it reaches the model
 - Eyal's status line
 - Matt Pocock's planning skills
 
