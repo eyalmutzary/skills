@@ -15,6 +15,7 @@
 !.claude-plugin/
 !.claude-plugin/**
 !mods/
+!assets/
 !hooks/
 hooks/rtk-rewrite.sh
 mods/*/.claude-plugin/types/

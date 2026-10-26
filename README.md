@@ -2,6 +2,16 @@
 
 A set of [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skills for planning, implementing, reviewing, and merging software.
 
+## Architecture
+
+A human talks to one orchestrator. The orchestrator runs workers, and each worker uses the skills below. The inspector watches how they all work.
+
+![Orchestrator, workers, and inspector](assets/architecture-orchestrator.png)
+
+Inside a worker:
+
+![Skills inside a worker](assets/architecture-worker.png)
+
 ## Install
 
 Run these commands inside Claude Code:
