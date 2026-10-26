@@ -1,6 +1,6 @@
 // Compares a live page with Figma values from a spec file. Needs only a Playwright `page`.
 // Usage in a steps file:
-//   const { figmaCheck } = await import(`${process.env.HOME}/.claude/skills/how-to-match-figma/scripts/figma-check.mjs`);
+//   const { figmaCheck } = await import('<skill dir>/scripts/figma-check.mjs');
 //   await figmaCheck(page, { spec: '/tmp/<id>-figma-spec.json', out: '/tmp/<id>-figma/round-1' });
 // Spec:
 //   root:      selector; element selectors are scoped inside it (':scope' = the root)

@@ -28,10 +28,10 @@ Write the tokens next to the numbers in your notes. The builder must use the tok
 
 ## 2. Compare
 
-Use the repo's UI-runner skill to open the page (most repos have one). From its steps file call:
+Use the repo's UI-runner skill to open the page (most repos have one). From its steps file call (`<skill dir>` is this skill's folder, as an absolute path):
 
 ```js
-const { figmaCheck } = await import(`${process.env.HOME}/.claude/skills/how-to-match-figma/scripts/figma-check.mjs`);
+const { figmaCheck } = await import('<skill dir>/scripts/figma-check.mjs');
 await figmaCheck(page, { spec: '/tmp/<id>-figma-spec.json', out: '/tmp/<id>-figma/round-<n>' });
 ```
 

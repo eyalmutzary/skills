@@ -21,7 +21,7 @@ For each PR:
 5. Merge using the repository's normal merge method and verify that the PR
   reached the merged state.
 
-While you own an open PR, keep `~/.claude/skills/how-to-babysit-pr/scripts/pr-watch <pr>` running as a background command. It exits on the first event that needs you (red check, new review or comment, merge-bot update, green, waiting on a human, merged) and prints it. Handle it, then start it again. Do not sleep or poll CI by hand.
+While you own an open PR, keep `<skill dir>/scripts/pr-watch <pr>` running as a background command. It exits on the first event that needs you (red check, new review or comment, merge-bot update, green, waiting on a human, merged) and prints it. Handle it, then start it again. Do not sleep or poll CI by hand.
 
 For a batch of PRs, process them one at a time. While one PR is waiting on CI, start or continue the next PR so its CI can run concurrently. Keep cycling through the batch until every PR is merged.   
   

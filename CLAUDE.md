@@ -21,7 +21,7 @@ I wanted to share some of my preferences here so we can be more aligned as we wo
 
 ## Worktrees
 
-Create worktrees only in `<repo-root>/.claude/worktrees/<slug>`, from the latest remote default branch. Use one worktree per task.
+Create worktrees only in `<repo-root>/.claude/worktrees/<slug>`, from the latest remote default branch. Use one worktree per task. A job deletes worktrees after 3 idle days, so push what you want to keep.
 
 ## Explanations
 

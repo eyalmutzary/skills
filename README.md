@@ -20,6 +20,7 @@ The third configures the optional extras:
 - A personalized `CLAUDE.md`
 - [RTK](https://github.com/rtk-ai/rtk), so shell output is filtered before it reaches the model
 - Eyal's status line
+- The inbox pane, dev-command permissions, a keep-awake hook, and a twice-weekly worktree sweep
 - Matt Pocock's planning skills
 
 Restart Claude Code after setup.
@@ -52,7 +53,7 @@ Matt's plugin supplies `/grill-with-docs` and `/wayfinder`. The setup skill inst
 
 | Skill | What it does |
 | --- | --- |
-| `how-to-setup-eyal-skills` | Configure `~/.claude` (settings, optional `CLAUDE.md`, RTK, status line, Matt's plugin) |
+| `how-to-setup-eyal-skills` | Configure `~/.claude` (settings, `CLAUDE.md`, RTK, status line, inbox, hooks, worktree sweep, Matt's plugin) |
 | `how-to-use-eyal-skills` | “What should I do next?” router for the workflow |
 | `how-to-explain` | Explain a concept, bug, or system at your altitude |
 | `how-to-triage-new-task` | Decide: implement now, plan first, or ask |

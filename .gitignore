@@ -7,12 +7,17 @@
 !README.md
 !CLAUDE.md
 !skills/
+!scripts/
 !output-styles/
 !settings-public.json
 !statusline-command.sh
 !statusline/
 !.claude-plugin/
 !.claude-plugin/**
+!mods/
+!hooks/
+hooks/rtk-rewrite.sh
+mods/*/.claude-plugin/types/
 
 # Junk inside allowed folders
 **/.DS_Store

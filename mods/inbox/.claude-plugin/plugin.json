@@ -1,0 +1,6 @@
+{
+  "name": "inbox",
+  "version": "0.1.0",
+  "description": "A pane that holds the decisions and reports the session wants you to see",
+  "types": "./types/index.d.ts"
+}
