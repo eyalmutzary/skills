@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+"""Wait until a master worker ends that the inspector has not checked, print it, and exit.
+
+Usage:
+  inspector-watch [--interval 3600]   wait for ended, unchecked workers
+  inspector-watch mark <sessionId>    record a worker as checked, and the master as checked until now
+
+A worker is a transcript whose agent name has a folder in ~/.claude/master/workers/.
+It has ended when its session is no longer live in `claude agents --json --all`;
+`claude rm` drops a session from that list, so transcripts are the source.
+The first run starts from now: workers that ended before it are never reported.
+"""
+import argparse, glob, json, os, subprocess, time
+from datetime import datetime, timezone
+
+INSPECTOR_DIR = os.path.expanduser("~/.claude/inspector")
+SEEN_PATH = os.path.join(INSPECTOR_DIR, "seen.json")
+WORKERS_DIR = os.path.expanduser("~/.claude/master/workers")
+PROJECTS_DIR = os.path.expanduser("~/.claude/projects")
+MASTER_NAME = "master"
+ENDED_STATES = ("done", "stopped", "failed")
+
+
+def main():
+    args = parse_args()
+    if args.command == "mark":
+        mark_checked(args.session_id)
+        return
+    watch(args.interval)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    commands = parser.add_subparsers(dest="command")
+    mark = commands.add_parser("mark")
+    mark.add_argument("session_id")
+    parser.add_argument("--interval", type=int, default=3600)
+    return parser.parse_args()
+
+
+def watch(interval):
+    seen = load_seen() or start_seen()
+    while True:
+        live_ids = list_live_session_ids()
+        if live_ids is not None:
+            transcripts = named_transcripts(since=seen["since"])
+            pending = unchecked_workers(transcripts, live_ids, seen)
+            if pending:
+                print_pending(pending, transcripts, seen)
+                return
+        time.sleep(interval)
+
+
+def mark_checked(session_id):
+    seen = load_seen() or start_seen()
+    checked_at = now_iso()
+    seen["workers"][session_id] = checked_at
+    seen["master_checked_until"] = checked_at
+    save_seen(seen)
+
+
+def start_seen():
+    started_at = now_iso()
+    seen = {"since": started_at, "master_checked_until": started_at, "workers": {}}
+    save_seen(seen)
+    return seen
+
+
+def named_transcripts(since):
+    """Return {session_id: {"name", "path"}} for transcripts changed after `since`."""
+    since_epoch = datetime.strptime(since, "%Y-%m-%dT%H:%M:%S.000Z").replace(tzinfo=timezone.utc).timestamp()
+    transcripts = {}
+    for path in glob.glob(f"{PROJECTS_DIR}/*/*.jsonl"):
+        if os.path.getmtime(path) < since_epoch:
+            continue
+        name = agent_name(path)
+        if name:
+            session_id = os.path.basename(path).removesuffix(".jsonl")
+            transcripts[session_id] = {"name": name, "path": path}
+    return transcripts
+
+
+def unchecked_workers(transcripts, live_ids, seen):
+    pending = []
+    for session_id, transcript in transcripts.items():
+        is_worker = os.path.isdir(os.path.join(WORKERS_DIR, transcript["name"]))
+        is_new_end = session_id not in live_ids and session_id not in seen["workers"]
+        if is_worker and is_new_end:
+            pending.append((session_id, transcript))
+    return pending
+
+
+def print_pending(pending, transcripts, seen):
+    for session_id, transcript in pending:
+        print(f"WORKER {transcript['name']}")
+        print(f"  mark: inspector-watch mark {session_id}")
+        print_transcripts(transcript["path"])
+
+    masters = [t for t in transcripts.values() if t["name"] == MASTER_NAME]
+    if masters:
+        latest_master = max(masters, key=lambda t: os.path.getmtime(t["path"]))
+        print(f"MASTER since {seen['master_checked_until']}")
+        print_transcripts(latest_master["path"])
+
+
+def print_transcripts(main_path):
+    subagents_dir = main_path.removesuffix(".jsonl")
+    for path in [main_path] + sorted(glob.glob(f"{subagents_dir}/subagents/*.jsonl")):
+        print(f"  {path}")
+
+
+def agent_name(path):
+    name = None
+    with open(path, errors="replace") as f:
+        for line in f:
+            if '"agent-name"' not in line:
+                continue
+            try:
+                name = json.loads(line).get("agentName") or name
+            except json.JSONDecodeError:
+                continue
+    return name
+
+
+def list_live_session_ids():
+    result = subprocess.run(["claude", "agents", "--json", "--all"], capture_output=True, text=True)
+    try:
+        sessions = json.loads(result.stdout)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    return {s["sessionId"] for s in sessions if s.get("state") not in ENDED_STATES}
+
+
+def now_iso():
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
+def load_seen():
+    try:
+        with open(SEEN_PATH) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def save_seen(seen):
+    os.makedirs(INSPECTOR_DIR, exist_ok=True)
+    with open(SEEN_PATH, "w") as f:
+        json.dump(seen, f, indent=2)
+
+
+if __name__ == "__main__":
+    main()

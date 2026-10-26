@@ -1,0 +1,1 @@
+{"crossSessionInbound":"accept","hooks":{"SessionStart":[{"matcher":"compact|resume","hooks":[{"type":"command","command":"$HOME/.claude/master/hooks/master-session-start.sh"}]}],"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"$HOME/.claude/master/hooks/master-self-action-log.sh"}]}]}}

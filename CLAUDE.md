@@ -19,7 +19,9 @@ I wanted to share some of my preferences here so we can be more aligned as we wo
 - Tests are good! Endless smoke tests, "regression tests" for feature deletions, etc, much less good. Tests should be focused, not slop.
 - Before writing any code, use the `how-to-write-code` skill.
 
+## Worktrees
 
+Create worktrees only in `<repo-root>/.claude/worktrees/<slug>`, from the latest remote default branch. Use one worktree per task.
 
 ## Explanations
 

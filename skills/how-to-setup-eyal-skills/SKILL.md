@@ -1,5 +1,5 @@
 ---
-name: how-to-setup-skills
+name: how-to-setup-eyal-skills
 description: Set up Eyal's agentic suite (settings, skills, output styles, CLAUDE.md, status line, RTK) in the user's Claude Code.
 disable-model-invocation: true
 ---
@@ -14,8 +14,8 @@ Source of truth: https://github.com/eyalmutzary/skills. Always read the files fr
 2. Ask all questions in one `AskUserQuestion` round:
    - **Local skill copy** — copy skills and output styles into `~/.claude`? Options: "No (Recommended if `eyal-skills` plugin is installed)", "Yes (editable local copy)".
    - **Status line** — install Eyal's status line (ccstatusline)? Options: "Yes (Recommended)", "No".
-   - **CLAUDE.md** — replace `~/.claude/CLAUDE.md` with Eyal's version, personalized with your name? Options: "Yes (Recommended)", "No".
    - **RTK** — install [RTK](https://github.com/rtk-ai/rtk) so shell output is filtered before it reaches the model? Options: "Yes (Recommended)", "No".
+   - **CLAUDE.md** — replace `~/.claude/CLAUDE.md` with Eyal's version, personalized with your name? Options: "Yes (Recommended)", "No".
    - If CLAUDE.md is "Yes", ask for the user's first name. Offer `git config user.name` as the default.
 
 Done when every answer is known.
@@ -64,8 +64,17 @@ Verify: `command -v ccstatusline` prints a path.
 
 ## 7. Matt's planning skills
 
-If any of `/grill-with-docs`, `/wayfinder`, `/to-spec`, `/to-tickets` is missing, run `claude plugin install mattpocock-skills`.
+If `/grill-with-docs` or `/wayfinder` is missing, run `claude plugin install mattpocock-skills`.
 
-## 8. Summary
+## 8. Master kit (always)
 
-What changed, backup path, plugin install outcome. Restart Claude Code if settings or plugins changed.
+```bash
+mkdir -p ~/.claude/master
+cp -R /tmp/eyal-skills/skills/how-to-orchestrate/hooks /tmp/eyal-skills/skills/how-to-orchestrate/master-settings.json ~/.claude/master/
+```
+
+The master loads its hook through `master-settings.json`, so install no global hook.
+
+## 9. Summary
+
+What changed, backup path, plugin install outcome. Print the "Start the master" command from `/tmp/eyal-skills/skills/how-to-orchestrate/commands.md`. Restart Claude Code if settings or plugins changed.

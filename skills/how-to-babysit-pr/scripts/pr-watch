@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""Wait until a PR needs action, print what changed, and exit.
+
+Usage: pr-watch <pr-number-or-url> [--repo owner/name] [--interval 60]
+
+Run it in the background while you own an open PR. It exits on the first
+change: a red check, a new review or comment, a merge-bot update, all green,
+waiting on a human (once per commit), or merged/closed. Then run it again.
+It remembers what it already reported in /tmp, so a restart misses nothing.
+"""
+import argparse, hashlib, json, subprocess, sys, time
+
+HUMAN_CHECK_PREFIXES = ("UI Review", "UI Tests")
+# Bots that edit one status comment in place. Add your merge bot's login.
+EDIT_TRACKED_AUTHORS = ()
+UPDATED_AT_PREFIX = "_Last updated at"
+PASSED_MARK = "✅"
+MAX_CONSECUTIVE_ERRORS = 10
+BODY_PREVIEW_CHARS = 600
+
+
+def main():
+    args = parse_args()
+    state_path, seen = None, None
+    errors = 0
+
+    while True:
+        try:
+            pr = fetch_pr(args)
+            errors = 0
+        except RuntimeError as error:
+            errors += 1
+            if errors >= MAX_CONSECUTIVE_ERRORS:
+                print(f"ERROR: gh failed {errors} times in a row: {error}")
+                return
+            time.sleep(args.interval)
+            continue
+
+        if state_path is None:
+            state_path = state_file_path(pr["url"])
+            seen = load_state(state_path)
+        events = find_events(pr, seen)
+        if events:
+            save_state(state_path, seen)
+            print_events(pr, events)
+            return
+        time.sleep(args.interval)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pr")
+    parser.add_argument("--repo")
+    parser.add_argument("--interval", type=int, default=60)
+    return parser.parse_args()
+
+
+def fetch_pr(args):
+    repo_flag = ["--repo", args.repo] if args.repo else []
+    view = gh_json(["pr", "view", args.pr, *repo_flag,
+                    "--json", "number,url,state,headRefOid,reviewDecision,reviews,comments"])
+    checks = gh_json(["pr", "checks", args.pr, *repo_flag, "--json", "name,bucket,link"])
+    owner_repo = view["url"].split("github.com/")[1].split("/pull/")[0]
+    inline_lines = gh_text(["api", f"repos/{owner_repo}/pulls/{view['number']}/comments", "--paginate",
+                            "--jq", ".[] | {id, user: .user.login, path, body}"])
+    inline = [json.loads(line) for line in inline_lines.splitlines() if line.strip()]
+    return {**view, "checks": checks, "inline": inline}
+
+
+def gh_json(gh_args):
+    text = gh_text(gh_args)
+    try:
+        return json.loads(text) if text.strip() else []
+    except json.JSONDecodeError:
+        raise RuntimeError(text[:200])
+
+
+def gh_text(gh_args):
+    # `gh pr checks` exits non-zero for red or pending checks; stdout is still valid.
+    result = subprocess.run(["gh", *gh_args], capture_output=True, text=True)
+    has_no_checks_yet = "no checks reported" in result.stderr
+    if result.stdout.strip() or result.returncode == 0 or has_no_checks_yet:
+        return result.stdout
+    raise RuntimeError(result.stderr.strip()[:200])
+
+
+def find_events(pr, seen):
+    """Return the new events and record them in `seen`."""
+    events = []
+    events += closed_event(pr)
+    events += check_events(pr, seen)
+    events += review_events(pr, seen)
+    events += decision_event(pr, seen)
+    return events
+
+
+def closed_event(pr):
+    return [f"{pr['state']}: the PR is no longer open."] if pr["state"] != "OPEN" else []
+
+
+def check_events(pr, seen):
+    checks = pr["checks"]
+    sha = pr["headRefOid"]
+    failed = [c for c in checks if c["bucket"] in ("fail", "cancel")]
+    pending = [c["name"] for c in checks if c["bucket"] == "pending"]
+    new_failures = [c for c in failed if f"{c['name']} {c['link']}" not in seen["failures"]]
+    seen["failures"] += [f"{c['name']} {c['link']}" for c in new_failures]
+
+    if new_failures:
+        return [f"RED: {c['name']} -> {c['link']}" for c in new_failures]
+
+    is_all_green = checks and not failed and not pending
+    is_waiting_on_human = pending and not failed and all(n.startswith(HUMAN_CHECK_PREFIXES) for n in pending)
+    if is_all_green and seen["green"] != sha:
+        seen["green"] = sha
+        return ["GREEN: all checks passed."]
+    if is_waiting_on_human and seen["waiting"] != sha:
+        seen["waiting"] = sha
+        return [f"WAITING ON HUMAN: {', '.join(pending)}"]
+    return []
+
+
+def review_events(pr, seen):
+    items = [("review", r["id"], r["author"]["login"], r.get("state", ""), r["body"]) for r in pr["reviews"]]
+    items += [("comment", c["id"], c["author"]["login"], "", c["body"]) for c in pr["comments"]]
+    items += [("inline", str(c["id"]), c["user"], c.get("path", ""), c["body"]) for c in pr["inline"]]
+
+    events = []
+    for kind, item_id, author, detail, body in items:
+        key = item_key(item_id, author, body)
+        if key in seen["items"]:
+            continue
+        is_edit = any(seen_key.startswith(f"{item_id}:") for seen_key in seen["items"])
+        seen["items"].append(key)
+        if seen["initialized"]:
+            label = "UPDATED" if is_edit else "NEW"
+            events.append(f"{label} {kind.upper()} by {author} {detail}:\n{preview(author, body)}")
+    seen["initialized"] = True
+    return events
+
+
+def decision_event(pr, seen):
+    decision = pr["reviewDecision"] or "NONE"
+    previous = seen["decision"]
+    seen["decision"] = decision
+    return [f"REVIEW DECISION: {previous} -> {decision}"] if previous and previous != decision else []
+
+
+def item_key(item_id, author, body):
+    if author not in EDIT_TRACKED_AUTHORS:
+        return item_id
+    return f"{item_id}:{hashlib.sha1(tracked_content(body).encode()).hexdigest()[:12]}"
+
+
+def tracked_content(body):
+    # Bots rewrite a "Last updated at" footer on every pass; it is not a change.
+    lines = (body or "").splitlines()
+    return "\n".join(line for line in lines if not line.startswith(UPDATED_AT_PREFIX))
+
+
+def preview(author, body):
+    text = tracked_content(body).strip()
+    if author in EDIT_TRACKED_AUTHORS:
+        text = "\n".join(line for line in text.splitlines() if PASSED_MARK not in line)
+    return text if len(text) <= BODY_PREVIEW_CHARS else text[:BODY_PREVIEW_CHARS] + " ..."
+
+
+def print_events(pr, events):
+    print(f"PR #{pr['number']} {pr['url']}")
+    print("\n".join(events))
+    print("Handle this, then start pr-watch again in the background.")
+
+
+def state_file_path(pr_url):
+    key = pr_url.split("github.com/")[1].replace("/", "_")
+    return f"/tmp/pr-watch-{key}.json"
+
+
+def load_state(path):
+    empty = {"failures": [], "items": [], "green": "", "waiting": "", "decision": "", "initialized": False}
+    try:
+        with open(path) as f:
+            return {**empty, **json.load(f)}
+    except (OSError, json.JSONDecodeError):
+        return empty
+
+
+def save_state(path, seen):
+    with open(path, "w") as f:
+        json.dump(seen, f)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

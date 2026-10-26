@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+"""Wait until a worker needs the master, print what happened, and exit.
+
+Usage: master-watch <worker-name>... [--interval 60] [--stuck-minutes 30]
+
+Run it in the background in place of a heartbeat. It exits on the first event:
+a worker is gone, its last turn is an API error, it is busy with no transcript
+change for --stuck-minutes, or free disk is low. Then run it again. It
+remembers what it already reported in /tmp, so a restart repeats nothing.
+"""
+import argparse, glob, json, os, shutil, subprocess, time
+
+STATE_PATH = "/tmp/master-watch.json"
+TRANSCRIPT_GLOB = os.path.expanduser("~/.claude/projects/*/{session_id}.jsonl")
+TAIL_BYTES = 200_000
+MIN_FREE_GB = 15
+BYTES_PER_GB = 1024 ** 3
+ERROR_PREVIEW_CHARS = 200
+
+
+def main():
+    args = parse_args()
+    seen = load_state()
+
+    while True:
+        agents = list_agents()
+        events = find_events(args, agents, seen)
+        if events:
+            save_state(seen)
+            print("\n".join(events))
+            print("Handle this, then start master-watch again in the background.")
+            return
+        time.sleep(args.interval)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("workers", nargs="+")
+    parser.add_argument("--interval", type=int, default=60)
+    parser.add_argument("--stuck-minutes", type=int, default=30)
+    return parser.parse_args()
+
+
+def list_agents():
+    result = subprocess.run(["claude", "agents", "--json"], capture_output=True, text=True)
+    try:
+        return {agent["name"]: agent for agent in json.loads(result.stdout)}
+    except (json.JSONDecodeError, TypeError):
+        return None
+
+
+def find_events(args, agents, seen):
+    """Return the new events and record them in `seen`."""
+    events = disk_events(seen)
+    if agents is None:
+        return events
+    for name in args.workers:
+        events += worker_events(name, agents.get(name), args.stuck_minutes, seen)
+    return events
+
+
+def worker_events(name, agent, stuck_minutes, seen):
+    if agent is None:
+        return once(seen, f"gone:{name}", f"GONE: {name} is no longer in `claude agents --json`.")
+
+    transcript = find_transcript(agent["sessionId"])
+    if transcript is None:
+        return []
+
+    error = last_api_error(transcript)
+    if error:
+        uuid, text = error
+        return once(seen, f"error:{uuid}", f"API ERROR: {name}: {text[:ERROR_PREVIEW_CHARS]}")
+
+    idle_minutes = (time.time() - os.path.getmtime(transcript)) / 60
+    is_stuck = agent["status"] == "busy" and idle_minutes >= stuck_minutes
+    if is_stuck:
+        key = f"stuck:{name}:{int(os.path.getmtime(transcript))}"
+        return once(seen, key, f"STUCK: {name} is busy, no transcript change for {int(idle_minutes)} min.")
+    return []
+
+
+def disk_events(seen):
+    free_gb = shutil.disk_usage(os.path.expanduser("~")).free // BYTES_PER_GB
+    if free_gb >= MIN_FREE_GB:
+        seen.pop("disk", None)
+        return []
+    return once(seen, "disk", f"DISK: only {free_gb}G free. Spawn no new worker.")
+
+
+def find_transcript(session_id):
+    matches = glob.glob(TRANSCRIPT_GLOB.format(session_id=session_id))
+    return matches[0] if matches else None
+
+
+def last_api_error(transcript):
+    """Return (uuid, text) when the last assistant entry is an API error."""
+    for entry in reversed(tail_entries(transcript)):
+        if entry.get("type") != "assistant":
+            continue
+        if not entry.get("isApiErrorMessage"):
+            return None
+        content = entry.get("message", {}).get("content") or [{}]
+        return entry.get("uuid", ""), content[0].get("text", "")
+    return None
+
+
+def tail_entries(transcript):
+    start = max(0, os.path.getsize(transcript) - TAIL_BYTES)
+    with open(transcript, "rb") as f:
+        f.seek(start)
+        lines = f.read().decode(errors="replace").splitlines()
+    if start > 0:
+        lines = lines[1:]
+    entries = []
+    for line in lines:
+        try:
+            entries.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return entries
+
+
+def once(seen, key, message):
+    if seen.get(key):
+        return []
+    seen[key] = True
+    return [message]
+
+
+def load_state():
+    try:
+        with open(STATE_PATH) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def save_state(seen):
+    with open(STATE_PATH, "w") as f:
+        json.dump(seen, f)
+
+
+if __name__ == "__main__":
+    main()

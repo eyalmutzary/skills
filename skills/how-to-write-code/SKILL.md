@@ -13,6 +13,8 @@ for readability and correctness, not minimum line count.
 For frontend or React work, **REQUIRED REFERENCE:** read
 [frontend.md](frontend.md).
 
+When writing or editing a system-prompt, tool description or similar, use `/how-to-write-prompt`.
+
 ## Preferred code shape
 
 ### Files
@@ -125,8 +127,8 @@ file shape and extraction level.
 
 - Keep function arguments (inputs) tight and explicit. Destructure only the
   fields the function needs, not the whole wide object.
-  - Bad: `function loadAndAuthorize(deps: OrderDependencies, input: LoadOrderInput)`
-  - Good: `function loadAndAuthorize({ orders }: OrderDependencies, { orderId }: LoadOrderInput)`
+  - Bad: `function loadAndAuthorize(deps: StreamTurnEventsDependencies, input: StreamTurnEventsInput)`
+  - Good: `function loadAndAuthorize({ repositories }: StreamTurnEventsDependencies, { turnId, accountId, userId }: StreamTurnEventsInput)`
 - Avoid scattering comments in too many places throughout a PR.
 - Keep backend layers separate: services must access the database through model-layer functions, not database models directly.
 - Keep `index.ts` files export-only. Do not put logic in them.

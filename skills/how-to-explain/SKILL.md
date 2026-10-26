@@ -11,13 +11,7 @@ For implementation plans or proposed work walkthroughs, use `how-to-explain-plan
 
 ## Format
 
-Start every explanation with:
-
-- **What:** a short name for the thing being explained (concept, issue, gap, or flow).
-- **Essence:** one plain-language sentence: **“This is basically …”** Complete it at the most practical level before details.
-- **Shape:** a brief outline of the pieces you will cover (e.g. expected flow → break → cause, or actors → sequence → outcomes). Keep names short.
-
-Then explain the first piece. Do not dump the full explanation at once when the topic is long or multi-part. Pause after each piece until the user confirms they understand or asks to continue.
+Do not dump the full explanation at once when the topic is long or multi-part. Explain one piece at a time. Pause after each piece until the user confirms they understand or asks to continue.
 
 When adapting the explanation style, vary the method and structure—not only the phrasing. Use formats such as timelines, before/after comparisons, concrete examples, state transitions, diagrams, analogies, or question-and-answer when they clarify the idea.
 

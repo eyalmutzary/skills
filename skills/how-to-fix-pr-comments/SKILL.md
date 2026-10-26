@@ -75,8 +75,8 @@ tradeoff.
 
 ### 4. Complete independent work first
 
-Implement all changes that do not require the user. For refactoring, cleanup,
-or aesthetics, invoke `/how-to-write-code` and follow it.
+Implement all changes that do not require the user with `/how-to-implement`, on
+the PR's branch.
 
 Keep changes scoped to the comments. Add focused verification proportional to
 the risk, and do not add tests merely to preserve behavior that was removed.
@@ -126,30 +126,30 @@ decisions.
 
 After the user has reviewed all user-dependent comments:
 
-1. Implement every agreed change.
-2. Verify the complete change set.
-3. Re-read each unanswered comment and confirm its disposition matches the
+1. Implement every agreed change with `/how-to-implement`, on the PR's branch.
+   Commit and push every change.
+2. Re-read each unanswered comment and confirm its disposition matches the
   code and the recorded decisions.
 
 If implementation reveals a new material tradeoff, stop and return that
 specific decision to the user rather than guessing.
 
-### 7. Reply to every comment
+### 7. Reply to every comment and resolve it
 
-Reply to each previously unanswered GitHub comment with a clear, concise
-outcome:
+After the push, reply to each previously unanswered GitHub comment with a
+clear, concise outcome:
 
 - **Changed:** state what changed and the resulting behavior.
 - **Declined:** explain the concrete technical reason.
 - **Clarified:** answer the question directly.
 - **Already addressed:** point to the relevant code or existing behavior.
 
-Do not write vague replies such as “done” or “fixed.” Do not claim that local
-changes are visible in the PR; if they have not been pushed, say they will be
-included in the next push.
+Do not write vague replies such as “done” or “fixed.”
 
 Preserve one reply per comment so no feedback is silently dropped. Use the
 correct GitHub thread or conversation reply mechanism for each comment type.
+
+Resolve every review thread after you reply to it.
 
 ### 8. Finish
 
@@ -162,13 +162,10 @@ Summarize:
 - verification performed
 - any remaining risks or follow-ups
 
-Do not commit or push automatically. Ask the user whether they want the changes
-committed and pushed.
-
 ## Guardrails
 
 - Validate every review comment before accepting it.
-- Reply to every comment, including comments that are declined.
+- Reply to every comment, including comments that are declined, and resolve its thread.
 - Present user decisions individually in focused approval requests.
 - Wait for the user to say `continue` before moving past a user-dependent
 comment.
