@@ -1,6 +1,6 @@
 ---
 name: how-to-triage-new-task
-description: Use when a new task comes in, to decide whether to implement it now, plan it first, or ask for clarification.
+description: Use when a new task comes in, to decide whether to implement it now, plan it first, shape the idea first, or ask for clarification.
 user-invocable: true
 ---
 
@@ -20,9 +20,15 @@ Large room for error. The task is complex, cross-repo, or touches a sensitive or
 
 Run `/how-to-plan`.
 
+## Idea first
+
+The "what" still has not entirely clear: the scope, the behavior, or the goal is vague. Building or planning now would mean guessing multiple parts of the task.
+
+Run `/how-to-idea`. It continues to `/how-to-plan`, then to implementation.
+
 ## Ask
 
-You genuinely do not understand what the task asks for. Ask the user, then triage again.
+A small fact is missing, such as which board or which environment. Ask the user, then triage again.
 
 When unsure between implement and plan, plan.
 

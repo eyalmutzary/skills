@@ -57,7 +57,7 @@ Many sessions at once: run `/how-to-orchestrate` in its own session. It starts w
 
 Planning steps are a **menu**, not a checklist. Use more of them for large or complex work. See `/eyal-skills:how-to-use-eyal-skills` for guidance.
 
-Matt's plugin supplies `/grill-with-docs` and `/wayfinder`. The setup skill installs it when needed. This repo keeps its own copies of Matt's `/to-spec` and `/to-tickets`, so agents can call them.
+Matt's plugin supplies `/grill-with-docs`, `/grilling`, and `/wayfinder`. The setup skill installs it when needed. This repo keeps its own copies of Matt's `/to-spec` and `/to-tickets`, so agents can call them.
 
 ## Skills in this repo
 
@@ -66,7 +66,8 @@ Matt's plugin supplies `/grill-with-docs` and `/wayfinder`. The setup skill inst
 | `how-to-setup-eyal-skills` | Configure `~/.claude` (settings, `CLAUDE.md`, RTK, status line, inbox, hooks, worktree sweep, Matt's plugin) |
 | `how-to-use-eyal-skills` | “What should I do next?” router for the workflow |
 | `how-to-explain` | Explain a concept, bug, or system at your altitude |
-| `how-to-triage-new-task` | Decide: implement now, plan first, or ask |
+| `how-to-triage-new-task` | Decide: implement now, plan first, shape the idea first, or ask |
+| `how-to-idea` | Turn a vague request into a clear, whole product spec before planning |
 | `how-to-plan` | Run the whole Plan phase: estimate, gather context, spec, plan, tickets, docs PR |
 | `how-to-explain-plan` | Walk an implementation plan step by step before coding |
 | `how-to-review-plan` | Review an implementation plan before you build it |

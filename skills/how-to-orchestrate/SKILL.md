@@ -22,7 +22,7 @@ Confirm you are the only session named `master`. Copy the kit into `~/.claude/ma
 
 ## Orders
 
-Map each order to a skill (`/how-to-triage-new-task`, `/how-to-plan`, `/how-to-implement-stack`, `/how-to-babysit-pr`, or any installed skill) and spawn one worker per order, in the target repo. Name every skill the worker must run. Pass on "skip QA" only with the user's own words. Cap: 8 workers. Give each a short unique name, a label of 2-4 plain words that says what it works on, and the order's scope (e.g. "until merged"); record both in the state. Fill its prompt and settings from the templates `worker-prompt.md` and `worker-settings.json`. Subscribe to each worker with `notify_when_idle`. The worker spawns its own sub-agents.
+Map each order to a skill (`/how-to-triage-new-task`, `/how-to-idea`, `/how-to-plan`, `/how-to-implement-stack`, `/how-to-babysit-pr`, or any installed skill) and spawn one worker per order, in the target repo. Name every skill the worker must run. Pass on "skip QA" only with the user's own words. Cap: 8 workers. Give each a short unique name, a label of 2-4 plain words that says what it works on, and the order's scope (e.g. "until merged"); record both in the state. Fill its prompt and settings from the templates `worker-prompt.md` and `worker-settings.json`. Subscribe to each worker with `notify_when_idle`. The worker spawns its own sub-agents.
 
 ## Escalations
 

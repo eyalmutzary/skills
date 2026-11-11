@@ -22,10 +22,11 @@ Tell the user the ratings in three lines. The ratings decide how much of step 3 
 
 ## 2. Create the worktree
 
-Choose the home folder: the `docs/` folder of the most related microservice or micro-frontend. Create `docs/<slug>/` there. Every file below goes in that folder:
+If `/how-to-idea` ran, reuse its branch and `docs/<slug>/` folder. Otherwise, choose the home folder: the `docs/` folder of the most related microservice or micro-frontend. Create `docs/<slug>/` there. Every file below goes in that folder:
 
 ```
 docs/<slug>/
+  product-spec.md   from /how-to-idea, if it ran
   context/      one md file per source of context
   spec.md
   plan.md
@@ -36,7 +37,7 @@ docs/<slug>/
 
 Pick the techniques the case needs. Each one writes its findings into `context/`:
 
-- **`/grill-with-docs`** — when the request can be read in many ways, or is not well defined. Run it before the other techniques, so they research the right thing.
+- **`/grill-with-docs`** — when the request can be read in many ways, or is not well defined. Run it before the other techniques, so they research the right thing. If `product-spec.md` exists, it defines the product: grill only on technical design.
 - **Explorer sub-agents** — when the flow crosses repos or large services. Spawn a few Sonnet sub-agents in parallel, one per area. Each writes `context/<area>.md` with the files, flows, and constraints that matter for this task.
 - **Figma** — when the task has UI. Read the design, write `context/design.md` with notes and the Figma link. If a design should exist and you have no link, ask the user.
 - **Observability** — when production behavior must be verified (a bug, a load question, a data shape). Query logs, traces, or metrics. Write `context/observability.md` with the queries and what they showed.

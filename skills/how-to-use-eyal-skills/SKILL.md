@@ -27,7 +27,8 @@ Planning is a dial. Turn it up for a large feature, complex logic, many repos, o
 
 **Step 1 — Gather context.** All output goes to **one folder** as markdown files. Each technique is optional:
 
-- `/grill-with-docs` — the user writes all they know, then gets grilled. Big feature: separate product and technical grillings.
+- `/how-to-idea` — the request is vague; shape it into a whole product spec first.
+- `/grill-with-docs` — the user writes all they know, then gets grilled on the technical design.
 - Explorer sub-agents (prompt) — one per microfrontend/microservice; each writes a summary file of what matters for this feature.
 - Open-source scan (prompt) — search the web for GitHub projects that already solved this.
 - `/wayfinder` — when the path itself is still foggy.
